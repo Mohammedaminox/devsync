@@ -28,13 +28,13 @@ public class UtilisateurServlet extends HttpServlet {
                     listUsers(request, response);
                     break;
                 case "details":
-                    viewUser(request, response);
+                    detailsUser(request, response);
                     break;
                 case "create":
                     showCreateForm(request, response);
                     break;
                 case "update":
-                    showEditForm(request, response);
+                    showUpdateForm(request, response);
                     break;
                 case "delete":
                     deleteUser(request, response);
@@ -84,7 +84,7 @@ public class UtilisateurServlet extends HttpServlet {
     }
 
 
-    private void viewUser(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void detailsUser(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idParam = request.getParameter("id");
         if (idParam == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "User ID is required.");
@@ -93,9 +93,9 @@ public class UtilisateurServlet extends HttpServlet {
 
         try {
             Long id = Long.parseLong(idParam);
-            Utilisateur user = utilisateurService.getUtilisateurById(id);
-            if (user != null) {
-                request.setAttribute("user", user);
+            Utilisateur utilisateur = utilisateurService.getUtilisateurById(id);
+            if (utilisateur != null) {
+                request.setAttribute("utilisateur", utilisateur);
                 request.getRequestDispatcher("/views/user/details.jsp").forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
@@ -109,7 +109,7 @@ public class UtilisateurServlet extends HttpServlet {
         request.getRequestDispatcher("/views/user/create.jsp").forward(request, response);
     }
 
-    private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void showUpdateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idParam = request.getParameter("id");
         if (idParam == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "User ID is required.");
@@ -121,7 +121,7 @@ public class UtilisateurServlet extends HttpServlet {
             Utilisateur user = utilisateurService.getUtilisateurById(id);
             if (user != null) {
                 request.setAttribute("user", user);
-                request.getRequestDispatcher("/views/user/edit.jsp").forward(request, response);
+                request.getRequestDispatcher("/views/user/update.jsp").forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
             }

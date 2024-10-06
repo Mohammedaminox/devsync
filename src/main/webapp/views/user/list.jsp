@@ -22,35 +22,42 @@
         }
     %>
 
+    <a href="utilisateur?action=create" class="btn btn-success m-4">Create New User</a>
     <table class="table table-bordered table-striped">
         <thead>
         <tr>
             <th>ID</th>
+            <th>Nom</th>
+            <th>Prenom</th>
             <th>Username</th>
             <th>Email</th>
+            <th>IsManager</th>
             <th>Actions</th>
         </tr>
         </thead>
         <tbody>
         <%
-            List<Utilisateur> users = (List<Utilisateur>) request.getAttribute("users");
-            if (users == null || users.isEmpty()) {
+            List<Utilisateur> utilisateurs = (List<Utilisateur>) request.getAttribute("utilisateurs");
+            if (utilisateurs == null || utilisateurs.isEmpty()) {
         %>
         <tr>
             <td colspan="4" class="text-center">No users found.</td>
         </tr>
         <%
         } else {
-            for (Utilisateur user : users) {
+            for (Utilisateur utilisateur : utilisateurs) {
         %>
         <tr>
-            <td><%= user.getId() %></td>
-            <td><%= user.getUsername() %></td>
-            <td><%= user.getEmail() %></td>
+            <td><%= utilisateur.getId() %></td>
+            <td><%= utilisateur.getNom() %></td>
+            <td><%= utilisateur.getPrenom() %></td>
+            <td><%= utilisateur.getUsername() %></td>
+            <td><%= utilisateur.getEmail() %></td>
+            <td><%= utilisateur.getIsManager() %></td>
             <td>
-                <a href="?action=details&id=<%= user.getId() %>" class="btn btn-info btn-sm">Details</a>
-                <a href="?action=update&id=<%= user.getId() %>" class="btn btn-warning btn-sm">Update</a>
-                <a href="?action=delete&id=<%= user.getId() %>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
+                <a href="?action=details&id=<%= utilisateur.getId() %>" class="btn btn-info btn-sm">Details</a>
+                <a href="?action=update&id=<%= utilisateur.getId() %>" class="btn btn-warning btn-sm">Update</a>
+                <a href="?action=delete&id=<%= utilisateur.getId() %>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
             </td>
         </tr>
         <%
@@ -60,7 +67,7 @@
         </tbody>
     </table>
 
-    <a href="?action=create" class="btn btn-success">Create New User</a>
+
 </div>
 
 <!-- Optional: Include Bootstrap JS and Popper.js -->

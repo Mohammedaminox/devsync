@@ -24,6 +24,6 @@
 </head>
 <body>
 <h1>Welcome to the User Management System</h1>
-<a href="user?action=list" class="btn">View User List</a>
+<a href="utilisateur?action=list" class="btn">View User List</a>
 </body>
 </html>

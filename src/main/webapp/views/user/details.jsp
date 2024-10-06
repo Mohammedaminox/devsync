@@ -14,9 +14,12 @@
         </div>
         <div class="card-body">
             <p><strong>ID:</strong> ${utilisateur.id}</p>
+            <p><strong>Nom</strong> ${utilisateur.nom}</p>
+            <p><strong>Prenom</strong> ${utilisateur.prenom}</p>
             <p><strong>Username:</strong> ${utilisateur.username}</p>
             <p><strong>Email:</strong> ${utilisateur.email}</p>
-            <a href="user?action=list" class="btn btn-secondary">Back to User List</a>
+            <p><strong>Is Manager:</strong> ${utilisateur.isManager}</p>
+            <a href="utilisateur?action=list" class="btn btn-secondary">Back to User List</a>
         </div>
     </div>
 

@@ -25,10 +25,10 @@ public class UtilisateurServlet extends HttpServlet {
         try {
             switch (action) {
                 case "list":
-                    listUsers(request, response);
+                    listUtilisateurs(request, response);
                     break;
                 case "details":
-                    detailsUser(request, response);
+                    detailsUtilisateur(request, response);
                     break;
                 case "create":
                     showCreateForm(request, response);
@@ -37,10 +37,10 @@ public class UtilisateurServlet extends HttpServlet {
                     showUpdateForm(request, response);
                     break;
                 case "delete":
-                    deleteUser(request, response);
+                    deleteUtilisateur(request, response);
                     break;
                 default:
-                    listUsers(request, response);
+                    listUtilisateurs(request, response);
                     break;
             }
         } catch (Exception e) {
@@ -55,13 +55,13 @@ public class UtilisateurServlet extends HttpServlet {
         try {
             switch (action) {
                 case "create":
-                    createUser(request, response);
+                    createUtilisateur(request, response);
                     break;
                 case "update":
-                    updateUser(request, response);
+                    updateUtilisateur(request, response);
                     break;
                 default:
-                    listUsers(request, response);
+                    listUtilisateurs(request, response);
                     break;
             }
         } catch (Exception e) {
@@ -69,22 +69,22 @@ public class UtilisateurServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: " + e.getMessage());
         }
     }
-    private void listUsers(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void listUtilisateurs(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            List<Utilisateur> users = utilisateurService.getAllUtilisateurs();
-            System.out.println("Number of users found: " + users.size());  // Log the number of users retrieved
-            request.setAttribute("users", users);
+            List<Utilisateur> utilisateurs = utilisateurService.getAllUtilisateurs();
+            System.out.println("Number of users found: " + utilisateurs.size());  // Log the number of users retrieved
+            request.setAttribute("utilisateurs", utilisateurs);
             request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
         } catch (Exception e) {
             log("Error retrieving user list: " + e.getMessage(), e);
             request.setAttribute("errorMessage", "Failed to retrieve user list. Please try again later.");
-            request.setAttribute("users", List.of());  // Passing an empty list to prevent null pointer exceptions
+            request.setAttribute("utilisateurs", List.of());  // Passing an empty list to prevent null pointer exceptions
             request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
         }
     }
 
 
-    private void detailsUser(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void detailsUtilisateur(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idParam = request.getParameter("id");
         if (idParam == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "User ID is required.");
@@ -118,9 +118,9 @@ public class UtilisateurServlet extends HttpServlet {
 
         try {
             Long id = Long.parseLong(idParam);
-            Utilisateur user = utilisateurService.getUtilisateurById(id);
-            if (user != null) {
-                request.setAttribute("user", user);
+            Utilisateur utilisateur = utilisateurService.getUtilisateurById(id);
+            if (utilisateur != null) {
+                request.setAttribute("utilisateur", utilisateur);
                 request.getRequestDispatcher("/views/user/update.jsp").forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
@@ -129,21 +129,38 @@ public class UtilisateurServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid User ID format.");
         }
     }
-    private void createUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+    private void createUtilisateur(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // Get parameters from the request
+        String nom = request.getParameter("nom");
+        String prenom = request.getParameter("prenom");
         String username = request.getParameter("username");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        String isManagerParam = request.getParameter("is_manager");
 
-        if (username == null || username.isEmpty() || email == null || email.isEmpty() || password == null || password.isEmpty()) {
+        // Convert the isManagerParam to a Boolean
+        Boolean isManager = isManagerParam != null && isManagerParam.equals("on");
+
+        // Validate required fields
+        if (nom == null || nom.isEmpty() || prenom == null || prenom.isEmpty() ||
+                username == null || username.isEmpty() || email == null || email.isEmpty() || password == null || password.isEmpty()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "All fields are required.");
             return;
         }
 
-        Utilisateur newUser = new Utilisateur(username, password, email);
-        utilisateurService.createUtilisateur(newUser);
-        response.sendRedirect("user?action=list");
+        // Create new Utilisateur object with all fields including nom, prenom, and isManager
+        Utilisateur newUtilisateur = new Utilisateur(nom, prenom, username, password, email, isManager);
+
+        // Save the new user using the service
+        utilisateurService.createUtilisateur(newUtilisateur);
+
+        // Redirect to the user list after successful creation
+        response.sendRedirect("utilisateur?action=list");
     }
-    private void updateUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+    private void updateUtilisateur(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // Get the user ID from the request
         String idParam = request.getParameter("id");
         if (idParam == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "User ID is required.");
@@ -151,34 +168,55 @@ public class UtilisateurServlet extends HttpServlet {
         }
 
         try {
-            Long id = Long.parseLong(idParam);
+            Long id = Long.parseLong(idParam);  // Parse the user ID
+            String nom = request.getParameter("nom");
+            String prenom = request.getParameter("prenom");
             String username = request.getParameter("username");
             String email = request.getParameter("email");
             String password = request.getParameter("password");
+            String isManagerParam = request.getParameter("is_manager");
 
-            if (username == null || username.isEmpty() || email == null || email.isEmpty()) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Username and email cannot be empty.");
+            // Convert the isManagerParam to a Boolean
+            Boolean isManager = isManagerParam != null && isManagerParam.equals("on");
+
+            // Validate required fields
+            if (nom == null || nom.isEmpty() || prenom == null || prenom.isEmpty() ||
+                    username == null || username.isEmpty() || email == null || email.isEmpty()) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "All fields are required.");
                 return;
             }
 
-            Utilisateur user = utilisateurService.getUtilisateurById(id);
-            if (user != null) {
-                user.setUsername(username);
-                user.setEmail(email);
+            // Fetch the user from the database
+            Utilisateur utilisateur = utilisateurService.getUtilisateurById(id);
+            if (utilisateur != null) {
+                // Update user details
+                utilisateur.setNom(nom);
+                utilisateur.setPrenom(prenom);
+                utilisateur.setUsername(username);
+                utilisateur.setEmail(email);
+                utilisateur.setIsManager(isManager); // Assuming there's a setter for isManager
+
+                // Only update the password if it's provided
                 if (password != null && !password.isEmpty()) {
-                    user.setPassword(password);
+                    utilisateur.setPassword(password);
                 }
-                utilisateurService.updateUtilisateur(user);
-                response.sendRedirect("user?action=list");
+
+
+                utilisateurService.updateUtilisateur(utilisateur);
+
+
+                response.sendRedirect("utilisateur?action=list");
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
             }
         } catch (NumberFormatException e) {
+
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid User ID format.");
         }
     }
 
-    private void deleteUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+    private void deleteUtilisateur(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String idParam = request.getParameter("id");
         if (idParam == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "User ID is required.");
@@ -187,7 +225,7 @@ public class UtilisateurServlet extends HttpServlet {
         try {
             Long id = Long.parseLong(idParam);
             utilisateurService.deleteUtilisateur(id);
-            response.sendRedirect("user?action=list");
+            response.sendRedirect("utilisateur?action=list");
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid User ID format.");
         }

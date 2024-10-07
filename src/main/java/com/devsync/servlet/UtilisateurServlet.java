@@ -3,7 +3,7 @@ package com.devsync.servlet;
 import com.devsync.entities.Utilisateur;
 import com.devsync.services.UtilisateurService;
 import jakarta.inject.Inject;
-import jakarta.servlet.ServletException; // Use jakarta instead of javax
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -72,13 +72,12 @@ public class UtilisateurServlet extends HttpServlet {
     private void listUtilisateurs(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             List<Utilisateur> utilisateurs = utilisateurService.getAllUtilisateurs();
-            System.out.println("Number of users found: " + utilisateurs.size());  // Log the number of users retrieved
             request.setAttribute("utilisateurs", utilisateurs);
             request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
         } catch (Exception e) {
             log("Error retrieving user list: " + e.getMessage(), e);
             request.setAttribute("errorMessage", "Failed to retrieve user list. Please try again later.");
-            request.setAttribute("utilisateurs", List.of());  // Passing an empty list to prevent null pointer exceptions
+            request.setAttribute("utilisateurs", List.of());
             request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
         }
     }
@@ -139,23 +138,23 @@ public class UtilisateurServlet extends HttpServlet {
         String password = request.getParameter("password");
         String isManagerParam = request.getParameter("is_manager");
 
-        // Convert the isManagerParam to a Boolean
+
         Boolean isManager = isManagerParam != null && isManagerParam.equals("on");
 
-        // Validate required fields
+
         if (nom == null || nom.isEmpty() || prenom == null || prenom.isEmpty() ||
                 username == null || username.isEmpty() || email == null || email.isEmpty() || password == null || password.isEmpty()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "All fields are required.");
             return;
         }
 
-        // Create new Utilisateur object with all fields including nom, prenom, and isManager
+
         Utilisateur newUtilisateur = new Utilisateur(nom, prenom, username, password, email, isManager);
 
-        // Save the new user using the service
+
         utilisateurService.createUtilisateur(newUtilisateur);
 
-        // Redirect to the user list after successful creation
+
         response.sendRedirect("utilisateur?action=list");
     }
 
@@ -176,17 +175,17 @@ public class UtilisateurServlet extends HttpServlet {
             String password = request.getParameter("password");
             String isManagerParam = request.getParameter("is_manager");
 
-            // Convert the isManagerParam to a Boolean
+
             Boolean isManager = isManagerParam != null && isManagerParam.equals("on");
 
-            // Validate required fields
+
             if (nom == null || nom.isEmpty() || prenom == null || prenom.isEmpty() ||
                     username == null || username.isEmpty() || email == null || email.isEmpty()) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "All fields are required.");
                 return;
             }
 
-            // Fetch the user from the database
+
             Utilisateur utilisateur = utilisateurService.getUtilisateurById(id);
             if (utilisateur != null) {
                 // Update user details

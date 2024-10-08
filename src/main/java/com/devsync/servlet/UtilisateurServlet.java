@@ -195,7 +195,7 @@ public class UtilisateurServlet extends HttpServlet {
                 utilisateur.setEmail(email);
                 utilisateur.setIsManager(isManager); // Assuming there's a setter for isManager
 
-                // Only update the password if it's provided
+
                 if (password != null && !password.isEmpty()) {
                     utilisateur.setPassword(password);
                 }

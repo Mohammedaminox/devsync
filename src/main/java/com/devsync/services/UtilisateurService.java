@@ -1,12 +1,11 @@
 package com.devsync.services;
 
 import com.devsync.entities.Utilisateur;
-import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
-@Stateless
+
 public class UtilisateurService {
     @PersistenceContext
     private EntityManager em;

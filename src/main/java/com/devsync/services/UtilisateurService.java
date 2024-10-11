@@ -1,11 +1,13 @@
 package com.devsync.services;
 
 import com.devsync.entities.Utilisateur;
+import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
-
+@Stateless
 public class UtilisateurService {
     @PersistenceContext
     private EntityManager em;
@@ -32,5 +34,23 @@ public class UtilisateurService {
         if (utilisateur != null) {
             em.remove(utilisateur);
         }
+    }
+
+    public Utilisateur authenticate(String email, String password) {
+        try {
+            // Query to get the user by email
+            Utilisateur utilisateur = em.createQuery(
+                            "SELECT u FROM Utilisateur u WHERE u.email = :email", Utilisateur.class)
+                    .setParameter("email", email)
+                    .getSingleResult();
+
+            // Check if the password matches the stored password
+            if (utilisateur != null && password.equals(utilisateur.getPassword())) {
+                return utilisateur;
+            }
+        } catch (NoResultException e) {
+            return null;
+        }
+        return null;
     }
 }

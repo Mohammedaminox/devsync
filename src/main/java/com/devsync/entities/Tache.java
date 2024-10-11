@@ -1,38 +1,56 @@
 package com.devsync.entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import java.time.LocalDate;
+import java.util.Set;
 
-import java.util.Date;
-import java.util.List;
-
+@Setter
+@Getter
 @Entity
 @Table(name = "taches")
 public class Tache {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "titre", nullable = false, length = 255)
     private String titre;
 
-    @Column(nullable = false)
-    private Date dateCreation;
+    @Column(name = "description", length = 500)
+    private String description;
 
-    @Column(nullable = false)
-    private Date dateEcheance;
+    @Column(name = "date_creation", nullable = false)
+    private LocalDate dateCreation;
 
-    @Column(nullable = false)
+    @Column(name = "date_limite", nullable = false)
+    private LocalDate dateLimite;
+
+    @Column(name = "is_terminee", nullable = false)
     private boolean isTerminee;
 
     @ManyToOne
-    @JoinColumn(name = "utilisateur_id")
-    private Utilisateur utilisateur; // Association avec l'utilisateur
+    @JoinColumn(name = "utilisateur_id", nullable = false)
+    private Utilisateur utilisateur;
 
     @ElementCollection
     @CollectionTable(name = "tache_tags", joinColumns = @JoinColumn(name = "tache_id"))
     @Column(name = "tag")
-    private List<String> tags; // Liste de tags
+    private Set<String> tags;  // For multiple tags
 
-    // Getters et setters
+    public Tache() {}
+
+    public Tache(String titre, String description, LocalDate dateCreation, LocalDate dateLimite, boolean isTerminee, Utilisateur utilisateur, Set<String> tags) {
+        this.titre = titre;
+        this.description = description;
+        this.dateCreation = dateCreation;
+        this.dateLimite = dateLimite;
+        this.isTerminee = isTerminee;
+        this.utilisateur = utilisateur;
+        this.tags = tags;
+    }
+
+
 }
-

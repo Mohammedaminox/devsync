@@ -22,43 +22,85 @@ public class UtilisateurServlet extends HttpServlet {
         if (action == null) {
             action = "list";
         }
+
+        // Check if the user is logged in
+        Utilisateur loggedInUser = (Utilisateur) request.getSession().getAttribute("utilisateur");
+        if (loggedInUser == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You must be logged in to access this page.");
+            return;
+        }
+
         try {
             switch (action) {
                 case "list":
                     listUtilisateurs(request, response);
                     break;
                 case "details":
-                    detailsUtilisateur(request, response);
+                    if (loggedInUser.getIsManager()) {
+                        detailsUtilisateur(request, response);
+                    } else {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to view this page.");
+                    }
                     break;
                 case "create":
-                    showCreateForm(request, response);
+                    if (loggedInUser.getIsManager()) {
+                        showCreateForm(request, response);
+                    } else {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to create users.");
+                    }
                     break;
                 case "update":
-                    showUpdateForm(request, response);
+                    if (loggedInUser.getIsManager()) {
+                        showUpdateForm(request, response);
+                    } else {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to update users.");
+                    }
                     break;
                 case "delete":
-                    deleteUtilisateur(request, response);
+                    if (loggedInUser.getIsManager()) {
+                        deleteUtilisateur(request, response);
+                    } else {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to delete users.");
+                    }
                     break;
                 default:
                     listUtilisateurs(request, response);
                     break;
             }
         } catch (Exception e) {
-            log("Error processing POST request: " + e.getMessage(), e);
+            log("Error processing GET request: " + e.getMessage(), e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: " + e.getMessage());
         }
     }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
 
+        // Check if the user is logged in
+        Utilisateur loggedInUser = (Utilisateur) request.getSession().getAttribute("utilisateur");
+//        response.getWriter().println(loggedInUser);
+
+
         try {
             switch (action) {
+                case "login":
+                    loginUtilisateur(request, response);
+
+                    break;
                 case "create":
-                    createUtilisateur(request, response);
+                    if (loggedInUser.getIsManager()) {
+                        createUtilisateur(request, response);
+                    } else {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to create users.");
+                    }
                     break;
                 case "update":
-                    updateUtilisateur(request, response);
+                    if (loggedInUser.getIsManager()) {
+                        updateUtilisateur(request, response);
+                    } else {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to update users.");
+                    }
                     break;
                 default:
                     listUtilisateurs(request, response);
@@ -69,6 +111,34 @@ public class UtilisateurServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: " + e.getMessage());
         }
     }
+
+
+    private void loginUtilisateur(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // Existing login method
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+
+        if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Email and password are required.");
+            return;
+        }
+
+        Utilisateur utilisateur = utilisateurService.authenticate(email, password);
+
+        if (utilisateur != null) {
+            // Successful login
+            request.getSession().setAttribute("utilisateur", utilisateur);
+
+
+
+            response.sendRedirect("index.jsp");
+        } else {
+            // Invalid login
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid email or password.");
+
+        }
+    }
+
     private void listUtilisateurs(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             List<Utilisateur> utilisateurs = utilisateurService.getAllUtilisateurs();
@@ -195,7 +265,7 @@ public class UtilisateurServlet extends HttpServlet {
                 utilisateur.setEmail(email);
                 utilisateur.setIsManager(isManager); // Assuming there's a setter for isManager
 
-
+                // Only update the password if it's provided
                 if (password != null && !password.isEmpty()) {
                     utilisateur.setPassword(password);
                 }

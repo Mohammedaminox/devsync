@@ -16,11 +16,27 @@
         <servlet-name>UtilisateurServlet</servlet-name>
         <servlet-class>com.devsync.servlet.UtilisateurServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>TacheServlet</servlet-name>
+        <servlet-class>com.devsync.servlet.TacheServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>TagServlet</servlet-name>
+        <servlet-class>com.devsync.servlet.TagServlet</servlet-class>
+    </servlet>
 
     <!-- Servlet Mapping -->
     <servlet-mapping>
         <servlet-name>UtilisateurServlet</servlet-name>
         <url-pattern>/utilisateur</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>TacheServlet</servlet-name>
+        <url-pattern>/tache</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>TagServlet</servlet-name>
+        <url-pattern>/tag</url-pattern>
     </servlet-mapping>
 
 

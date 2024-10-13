@@ -25,5 +25,7 @@
 <body>
 <h1>Welcome to the User Management System</h1>
 <a href="utilisateur?action=list" class="btn">View User List</a>
+<a href="tache?action=list" class="btn">View Tache List</a>
+<a href="tag?action=list" class="btn">View Tag List</a>
 </body>
 </html>

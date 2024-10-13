@@ -36,28 +36,28 @@ public class UtilisateurServlet extends HttpServlet {
                     listUtilisateurs(request, response);
                     break;
                 case "details":
-                    if (loggedInUser.getIsManager()) {
+                    if (loggedInUser.isManager()) {
                         detailsUtilisateur(request, response);
                     } else {
                         response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to view this page.");
                     }
                     break;
                 case "create":
-                    if (loggedInUser.getIsManager()) {
+                    if (loggedInUser.isManager()) {
                         showCreateForm(request, response);
                     } else {
                         response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to create users.");
                     }
                     break;
                 case "update":
-                    if (loggedInUser.getIsManager()) {
+                    if (loggedInUser.isManager()) {
                         showUpdateForm(request, response);
                     } else {
                         response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to update users.");
                     }
                     break;
                 case "delete":
-                    if (loggedInUser.getIsManager()) {
+                    if (loggedInUser.isManager()) {
                         deleteUtilisateur(request, response);
                     } else {
                         response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to delete users.");
@@ -89,14 +89,14 @@ public class UtilisateurServlet extends HttpServlet {
 
                     break;
                 case "create":
-                    if (loggedInUser.getIsManager()) {
+                    if (loggedInUser.isManager()) {
                         createUtilisateur(request, response);
                     } else {
                         response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to create users.");
                     }
                     break;
                 case "update":
-                    if (loggedInUser.getIsManager()) {
+                    if (loggedInUser.isManager()) {
                         updateUtilisateur(request, response);
                     } else {
                         response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to update users.");
@@ -263,7 +263,7 @@ public class UtilisateurServlet extends HttpServlet {
                 utilisateur.setPrenom(prenom);
                 utilisateur.setUsername(username);
                 utilisateur.setEmail(email);
-                utilisateur.setIsManager(isManager); // Assuming there's a setter for isManager
+                utilisateur.setManager(isManager); // Assuming there's a setter for isManager
 
                 // Only update the password if it's provided
                 if (password != null && !password.isEmpty()) {

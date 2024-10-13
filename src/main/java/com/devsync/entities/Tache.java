@@ -31,18 +31,25 @@ public class Tache {
     @Column(name = "is_terminee", nullable = false)
     private boolean isTerminee;
 
+    // Relation Many-to-One avec Utilisateur
     @ManyToOne
     @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;
 
-    @ElementCollection
-    @CollectionTable(name = "tache_tags", joinColumns = @JoinColumn(name = "tache_id"))
-    @Column(name = "tag")
-    private Set<String> tags;  // For multiple tags
+    // Relation Many-to-Many avec Tag
+    @ManyToMany
+    @JoinTable(
+            name = "tache_tags",
+            joinColumns = @JoinColumn(name = "tache_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags;
 
+    // Constructeur par défaut
     public Tache() {}
 
-    public Tache(String titre, String description, LocalDate dateCreation, LocalDate dateLimite, boolean isTerminee, Utilisateur utilisateur, Set<String> tags) {
+    // Constructeur avec tous les champs
+    public Tache(String titre, String description, LocalDate dateCreation, LocalDate dateLimite, boolean isTerminee, Utilisateur utilisateur, Set<Tag> tags) {
         this.titre = titre;
         this.description = description;
         this.dateCreation = dateCreation;
@@ -52,5 +59,14 @@ public class Tache {
         this.tags = tags;
     }
 
-
+    // Méthode pour vérifier si la tâche peut être créée (ne doit pas être dans le passé)
+    @PrePersist
+    private void validateDates() {
+        if (dateCreation.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("La date de création ne peut pas être dans le passé");
+        }
+        if (dateLimite.isBefore(dateCreation)) {
+            throw new IllegalArgumentException("La date limite doit être postérieure à la date de création");
+        }
+    }
 }

@@ -1,5 +1,5 @@
 <%@ page import="java.util.List" %>
-<%@ page import="com.devsync.entities.Utilisateur" %>
+<%@ page import="com.devsync.entities.Tache" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <!DOCTYPE html>
@@ -11,7 +11,7 @@
 </head>
 <body>
 <div class="container mt-5">
-    <h1 class="mb-4">User List</h1>
+    <h1 class="mb-4">Tache List</h1>
 
     <%
         String errorMessage = (String) request.getAttribute("errorMessage");
@@ -22,42 +22,40 @@
         }
     %>
 
-    <a href="utilisateur?action=create" class="btn btn-success m-4">Create New User</a>
+    <a href="tache?action=create" class="btn btn-success m-4">Create New tache</a>
     <table class="table table-bordered table-striped">
         <thead>
         <tr>
             <th>ID</th>
-            <th>Nom</th>
-            <th>Prenom</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>IsManager</th>
+            <th>Titre</th>
+            <th>DateCreation</th>
+            <th>DateLimite</th>
+            <th>IsTermine</th>
             <th>Actions</th>
         </tr>
         </thead>
         <tbody>
         <%
-            List<Utilisateur> utilisateurs = (List<Utilisateur>) request.getAttribute("utilisateurs");
-            if (utilisateurs == null || utilisateurs.isEmpty()) {
+            List<Tache> taches = (List<Tache>) request.getAttribute("taches");
+            if (taches == null || taches.isEmpty()) {
         %>
         <tr>
             <td colspan="4" class="text-center">No users found.</td>
         </tr>
         <%
         } else {
-            for (Utilisateur utilisateur : utilisateurs) {
+            for (Tache tache : taches) {
         %>
         <tr>
-            <td><%= utilisateur.getId() %></td>
-            <td><%= utilisateur.getNom() %></td>
-            <td><%= utilisateur.getPrenom() %></td>
-            <td><%= utilisateur.getUsername() %></td>
-            <td><%= utilisateur.getEmail() %></td>
-            <td><%= utilisateur.isManager() %></td>
+            <td><%= tache.getId() %></td>
+            <td><%= tache.getTitre() %></td>
+            <td><%= tache.getDateCreation() %></td>
+            <td><%= tache.getDateLimite() %></td>
+            <td><%= tache.isTerminee() %></td>
             <td>
-                <a href="?action=details&id=<%= utilisateur.getId() %>" class="btn btn-info btn-sm">Details</a>
-                <a href="?action=update&id=<%= utilisateur.getId() %>" class="btn btn-warning btn-sm">Update</a>
-                <a href="?action=delete&id=<%= utilisateur.getId() %>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
+                <a href="?action=details&id=<%= tache.getId() %>" class="btn btn-info btn-sm">Details</a>
+                <a href="?action=update&id=<%= tache.getId() %>" class="btn btn-warning btn-sm">Update</a>
+                <a href="?action=delete&id=<%= tache.getId() %>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this tache?')">Delete</a>
             </td>
         </tr>
         <%

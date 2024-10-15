@@ -56,6 +56,9 @@ public class TacheServlet extends HttpServlet {
                 case "delete":
                     deleteTache(request, response);
                     break;
+                case "markAsComplete":   // New action to mark task as complete
+                    markAsComplete(request, response);
+                    break;
                 default:
                     listTaches(request, response);
                     break;
@@ -79,6 +82,9 @@ public class TacheServlet extends HttpServlet {
                     break;
                 case "update":
                     updateTache(request, response);
+                    break;
+                case "markAsComplete":   // New action to mark task as complete
+                    markAsComplete(request, response);
                     break;
                 default:
                     listTaches(request, response);
@@ -112,9 +118,10 @@ public class TacheServlet extends HttpServlet {
 
 
     private void createTache(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // Retrieve and validate input fields
         String titre = request.getParameter("titre");
         String description = request.getParameter("description");
-        String dateLimite = request.getParameter("date_limite");  // You might need proper date handling here
+        String dateLimite = request.getParameter("date_limite");
 
         if (titre == null || titre.isEmpty() || description == null || description.isEmpty() || dateLimite == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "All fields are required.");
@@ -130,32 +137,40 @@ public class TacheServlet extends HttpServlet {
             return;
         }
 
-        // Proper parsing of date and task creation
+        // Parse the due date and ensure it is not more than 3 days ahead
         LocalDate parsedDateLimite;
         try {
-            parsedDateLimite = LocalDate.parse(dateLimite); // Ensure the date is in the correct format
+            parsedDateLimite = LocalDate.parse(dateLimite);
+            if (parsedDateLimite.isAfter(LocalDate.now().plusDays(3))) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "You can only schedule a task up to 3 days in advance.");
+                return;
+            }
         } catch (DateTimeParseException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid date format. Please use YYYY-MM-DD.");
             return;
         }
-        // Retrieve the tag IDs from the request
-        String[] tagIds = request.getParameterValues("tags");
-        Set<Tag> selectedTags = new HashSet<>();
 
-        if (tagIds != null) {
-            for (String tagId : tagIds) {
-                // Fetch the Tag entity from the database using the ID
-                Tag tag = tagService.getTagById(Long.parseLong(tagId));
-                selectedTags.add(tag);
-            }
+        // Retrieve and validate tags (at least 2 tags are required)
+        String[] tagIds = request.getParameterValues("tags");
+        if (tagIds == null || tagIds.length < 2) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "At least two tags are required.");
+            return;
         }
 
+        // Fetch the tags from the database
+        Set<Tag> selectedTags = Arrays.stream(tagIds)
+                .map(id -> tagService.getTagById(Long.parseLong(id)))
+                .filter(Objects::nonNull) // Filter out any null tags
+                .collect(Collectors.toSet());
+
+        // Create and save the task
         Tache newTache = new Tache(titre, description, LocalDate.now(), parsedDateLimite, false, loggedInUser, selectedTags);
-        tacheService.createTache(newTache);// Assuming this method exists to handle task creation
+        tacheService.createTache(newTache); // Assuming this method exists to handle task creation
 
         // Redirect to the task list page after creation
         response.sendRedirect("tache?action=list");
     }
+
 
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Fetch the list of tags and set it in the request
@@ -227,6 +242,42 @@ public class TacheServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Task ID format.");
         }
     }
+
+    private void markAsComplete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String idParam = request.getParameter("id");
+
+        if (idParam == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Task ID is required.");
+            return;
+        }
+
+        try {
+            Long id = Long.parseLong(idParam);
+            Tache tache = tacheService.getTacheById(id);
+
+            if (tache == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Task not found.");
+                return;
+            }
+
+            // Ensure the current date is before the task's due date
+            LocalDate currentDate = LocalDate.now();
+            if (currentDate.isAfter(tache.getDateLimite())) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Cannot mark task as completed after the due date.");
+                return;
+            }
+
+            // Mark task as completed using the service method
+            tacheService.markTacheAsCompleted(id);
+
+            // Redirect to task list
+            response.sendRedirect("tache?action=list");
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Task ID format.");
+        }
+    }
+
+
 
 
 

@@ -56,7 +56,15 @@
                 <a href="?action=details&id=<%= tache.getId() %>" class="btn btn-info btn-sm">Details</a>
                 <a href="?action=update&id=<%= tache.getId() %>" class="btn btn-warning btn-sm">Update</a>
                 <a href="?action=delete&id=<%= tache.getId() %>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this tache?')">Delete</a>
+
+                <!-- Add "Mark as Completed" button only if task is not already completed -->
+                <% if (!tache.isTerminee()) { %>
+                <a href="?action=markAsComplete&id=<%= tache.getId() %>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to mark this task as completed?')">Mark as Completed</a>
+                <% } else { %>
+                <span class="badge bg-success">Completed</span>
+                <% } %>
             </td>
+
         </tr>
         <%
                 }

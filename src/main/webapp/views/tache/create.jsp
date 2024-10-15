@@ -1,5 +1,6 @@
 <%@ page import="com.devsync.entities.Tag" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.time.LocalDate" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -21,25 +22,31 @@
         <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
     </div>
 
+    <!-- Due Date (Limit to 3 days in advance) -->
     <div class="mb-3">
         <label for="date_limite" class="form-label">Due Date</label>
-        <input type="date" class="form-control" id="date_limite" name="date_limite" required>
+        <input type="date" class="form-control" id="date_limite" name="date_limite" min="<%= LocalDate.now() %>" max="<%= LocalDate.now().plusDays(3) %>" required>
+        <small class="form-text text-muted">You can only schedule a task up to 3 days in advance.</small>
     </div>
 
     <!-- Multi-select dropdown for existing tags -->
+    <!-- Tags (Multiple selection is required) -->
     <div class="mb-3">
         <label for="tags" class="form-label">Tags</label>
         <select class="form-select" id="tags" name="tags" multiple required>
             <%
-                // Assuming tagsList is passed from the servlet and contains the list of tags
+                // Fetch all available tags
                 List<Tag> tags = (List<Tag>) request.getAttribute("tags");
-                for (Tag tag : tags) {
+                if (tags != null) {
+                    for (Tag tag : tags) {
             %>
             <option value="<%= tag.getId() %>"><%= tag.getName() %></option>
             <%
+                    }
                 }
             %>
         </select>
+        <small class="form-text text-muted">You must select at least two tags.</small>
     </div>
 
     <button type="submit" class="btn btn-primary">Create Task</button>

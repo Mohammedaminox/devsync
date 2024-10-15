@@ -15,10 +15,7 @@ import org.hibernate.Hibernate;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TacheServlet extends HttpServlet {
@@ -181,11 +178,16 @@ public class TacheServlet extends HttpServlet {
             Tache tache = tacheService.getTacheById(id);
             if (tache != null) {
                 // Fetch the list of tags and set it in the request
-                Hibernate.initialize(tache.getTags());
-                List<Tag> tags = new ArrayList<>(tache.getTags());
+                List<Tag> allTags = tagService.getAllTags(); // Assuming you have a tagService for fetching all tags
 
-                request.setAttribute("tags", tags);
-                request.setAttribute("tache", tache);
+// Initialize the task's tags and fetch the task
+                Hibernate.initialize(tache.getTags());
+                List<Tag> tacheTags = new ArrayList<>(tache.getTags()); // These are the tags for the specific task
+
+// Set all available tags and the task in the request
+                request.setAttribute("tags", allTags); // These are all available tags
+                request.setAttribute("tacheTags", tacheTags); // Set the task's tags
+                request.setAttribute("tache", tache); // Set the tache object itself
                 request.getRequestDispatcher("/views/tache/update.jsp").forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Task not found.");
@@ -196,37 +198,37 @@ public class TacheServlet extends HttpServlet {
     }
 
     private void updateTache(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String idParam = request.getParameter("id");
-        if (idParam == null) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Task ID is required.");
-            return;
-        }
-
         try {
-            Long id = Long.parseLong(idParam);
-            String titre = request.getParameter("titre");
-            String description = request.getParameter("description");
-            String dateLimite = request.getParameter("date_limite"); // Date handling needed
+            Long id = Long.parseLong(request.getParameter("id"));
+            Tache tache = tacheService.getTacheById(id);
 
-            if (titre == null || titre.isEmpty() || description == null || description.isEmpty() || dateLimite == null) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "All fields are required.");
+            if (tache == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Task not found.");
                 return;
             }
 
-            Tache tache = tacheService.getTacheById(id);
-            if (tache != null) {
-                tache.setTitre(titre);
-                tache.setDescription(description);
-                tache.setDateLimite(LocalDate.parse(dateLimite));
-                tacheService.updateTache(tache);
-                response.sendRedirect("tache?action=list");
-            } else {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Task not found.");
+            tache.setTitre(request.getParameter("titre"));
+            tache.setDescription(request.getParameter("description"));
+            tache.setDateLimite(LocalDate.parse(request.getParameter("date_limite")));
+
+            // Update tags if provided
+            String[] selectedTagIds = request.getParameterValues("tags");
+            if (selectedTagIds != null) {
+                Set<Tag> updatedTags = Arrays.stream(selectedTagIds)
+                        .map(tagId -> tagService.getTagById(Long.parseLong(tagId)))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+                tache.setTags(updatedTags);
             }
+
+            tacheService.updateTache(tache);
+            response.sendRedirect("tache?action=list");
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Task ID format.");
         }
     }
+
+
 
     private void deleteTache(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String idParam = request.getParameter("id");

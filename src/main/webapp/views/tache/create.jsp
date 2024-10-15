@@ -40,7 +40,6 @@
                 }
             %>
         </select>
-        <small class="form-text text-muted">Hold down the Ctrl (Windows) or Command (Mac) button to select multiple options.</small>
     </div>
 
     <button type="submit" class="btn btn-primary">Create Task</button>

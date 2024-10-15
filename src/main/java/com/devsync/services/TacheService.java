@@ -33,7 +33,7 @@ public class TacheService {
 
     // Récupérer toutes les tâches
     public List<Tache> getAllTaches() {
-        return em.createQuery("SELECT t FROM Tache t LEFT JOIN FETCH t.tags", Tache.class).getResultList();
+        return em.createQuery("SELECT t FROM Tache t", Tache.class).getResultList();
     }
 
 

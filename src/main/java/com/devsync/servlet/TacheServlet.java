@@ -10,11 +10,16 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.hibernate.Hibernate;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TacheServlet extends HttpServlet {
 
@@ -91,7 +96,14 @@ public class TacheServlet extends HttpServlet {
     private void listTaches(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             List<Tache> taches = tacheService.getAllTaches();
+
+
+
+            // Set attributes for JSP
             request.setAttribute("taches", taches);
+
+
+            // Forward to the JSP
             request.getRequestDispatcher("/views/tache/list.jsp").forward(request, response);
         } catch (Exception e) {
             log("Error retrieving task list: " + e.getMessage(), e);
@@ -100,6 +112,7 @@ public class TacheServlet extends HttpServlet {
             request.getRequestDispatcher("/views/tache/list.jsp").forward(request, response);
         }
     }
+
 
     private void createTache(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String titre = request.getParameter("titre");
@@ -128,9 +141,20 @@ public class TacheServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid date format. Please use YYYY-MM-DD.");
             return;
         }
+        // Retrieve the tag IDs from the request
+        String[] tagIds = request.getParameterValues("tags");
+        Set<Tag> selectedTags = new HashSet<>();
 
-        Tache newTache = new Tache(titre, description, LocalDate.now(), parsedDateLimite, false, loggedInUser, null);
-        tacheService.createTache(newTache); // Assuming this method exists to handle task creation
+        if (tagIds != null) {
+            for (String tagId : tagIds) {
+                // Fetch the Tag entity from the database using the ID
+                Tag tag = tagService.getTagById(Long.parseLong(tagId));
+                selectedTags.add(tag);
+            }
+        }
+
+        Tache newTache = new Tache(titre, description, LocalDate.now(), parsedDateLimite, false, loggedInUser, selectedTags);
+        tacheService.createTache(newTache);// Assuming this method exists to handle task creation
 
         // Redirect to the task list page after creation
         response.sendRedirect("tache?action=list");
@@ -138,8 +162,8 @@ public class TacheServlet extends HttpServlet {
 
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Fetch the list of tags and set it in the request
-        List<Tag> tagsList = tagService.getAllTags();  // Assuming the method exists in TagService
-        request.setAttribute("tagsList", tagsList);
+        List<Tag> tags = tagService.getAllTags();  // Assuming the method exists in TagService
+        request.setAttribute("tags", tags);
 
         // Forward to the create form
         request.getRequestDispatcher("/views/tache/create.jsp").forward(request, response);
@@ -157,9 +181,10 @@ public class TacheServlet extends HttpServlet {
             Tache tache = tacheService.getTacheById(id);
             if (tache != null) {
                 // Fetch the list of tags and set it in the request
-                List<Tag> tagsList = tagService.getAllTags();  // Assuming the method exists in TagService
-                request.setAttribute("tagsList", tagsList);
+                Hibernate.initialize(tache.getTags());
+                List<Tag> tags = new ArrayList<>(tache.getTags());
 
+                request.setAttribute("tags", tags);
                 request.setAttribute("tache", tache);
                 request.getRequestDispatcher("/views/tache/update.jsp").forward(request, response);
             } else {
@@ -221,22 +246,41 @@ public class TacheServlet extends HttpServlet {
 
     private void detailsTache(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idParam = request.getParameter("id");
-        if (idParam == null) {
+
+        if (idParam == null || idParam.isEmpty()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Task ID is required.");
             return;
         }
 
         try {
             Long id = Long.parseLong(idParam);
+
+            // Fetch the task by ID
             Tache tache = tacheService.getTacheById(id);
-            if (tache != null) {
-                request.setAttribute("tache", tache);
-                request.getRequestDispatcher("/views/tache/details.jsp").forward(request, response);
-            } else {
+            if (tache == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Task not found.");
+                return;
             }
+
+            // Fetch associated tags (assuming lazy loading)
+            Hibernate.initialize(tache.getTags());
+            List<Tag> tags = new ArrayList<>(tache.getTags());
+
+            // Set attributes to pass to JSP
+            request.setAttribute("tache", tache);
+            request.setAttribute("tags", tags);
+
+            // Forward to details page
+            request.getRequestDispatcher("/views/tache/details.jsp").forward(request, response);
+
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Task ID format.");
+        } catch (Exception e) {
+            // Handle any unexpected errors (such as database issues)
+            log("Error retrieving task details: " + e.getMessage(), e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred while retrieving task details.");
         }
     }
+
+
 }

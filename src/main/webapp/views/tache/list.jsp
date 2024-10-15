@@ -40,7 +40,7 @@
             if (taches == null || taches.isEmpty()) {
         %>
         <tr>
-            <td colspan="4" class="text-center">No users found.</td>
+            <td colspan="4" class="text-center">No taches found.</td>
         </tr>
         <%
         } else {

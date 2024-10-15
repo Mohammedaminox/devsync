@@ -10,7 +10,7 @@
 <body class="container mt-5">
 <h1 class="mb-4">Create Task</h1>
 
-<form action="?action=createTache" method="post">
+<form action="?action=create" method="post">
     <div class="mb-3">
         <label for="titre" class="form-label">Title</label>
         <input type="text" class="form-control" id="titre" name="titre" required>
@@ -32,8 +32,8 @@
         <select class="form-select" id="tags" name="tags" multiple required>
             <%
                 // Assuming tagsList is passed from the servlet and contains the list of tags
-                List<Tag> tagsList = (List<Tag>) request.getAttribute("tags");
-                for (Tag tag : tagsList) {
+                List<Tag> tags = (List<Tag>) request.getAttribute("tags");
+                for (Tag tag : tags) {
             %>
             <option value="<%= tag.getId() %>"><%= tag.getName() %></option>
             <%

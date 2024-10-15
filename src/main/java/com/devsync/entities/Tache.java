@@ -62,9 +62,7 @@ public class Tache {
     // Méthode pour vérifier si la tâche peut être créée (ne doit pas être dans le passé)
     @PrePersist
     private void validateDates() {
-        if (dateCreation.isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("La date de création ne peut pas être dans le passé");
-        }
+
         if (dateLimite.isBefore(dateCreation)) {
             throw new IllegalArgumentException("La date limite doit être postérieure à la date de création");
         }

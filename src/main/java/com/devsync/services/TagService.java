@@ -1,6 +1,7 @@
 package com.devsync.services;
 
 import com.devsync.entities.Tag;
+import com.devsync.entities.Utilisateur;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -41,4 +42,6 @@ public class TagService {
             em.remove(tag);
         }
     }
+
+
 }

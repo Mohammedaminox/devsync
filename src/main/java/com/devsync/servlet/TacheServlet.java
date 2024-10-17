@@ -5,6 +5,7 @@ import com.devsync.entities.Tag;  // Assuming you have a Tag entity
 import com.devsync.services.TacheService;
 import com.devsync.services.TagService; // Assuming you have a TagService
 import com.devsync.entities.Utilisateur;
+import com.devsync.services.UtilisateurService;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -23,8 +24,12 @@ public class TacheServlet extends HttpServlet {
     @Inject
     private TacheService tacheService;
 
+
     @Inject
     private TagService tagService; // Inject the TagService
+
+    @Inject
+    private UtilisateurService utilisateurService;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -59,6 +64,9 @@ public class TacheServlet extends HttpServlet {
                 case "markAsComplete":   // New action to mark task as complete
                     markAsComplete(request, response);
                     break;
+                case "assign":
+                    assignTache(request, response); // Add the case for assigning the task
+                    break;
                 default:
                     listTaches(request, response);
                     break;
@@ -86,6 +94,9 @@ public class TacheServlet extends HttpServlet {
                 case "markAsComplete":   // New action to mark task as complete
                     markAsComplete(request, response);
                     break;
+                case "assign":
+                    assignTache(request, response); // Add the case for assigning the task
+                    break;
                 default:
                     listTaches(request, response);
                     break;
@@ -97,13 +108,18 @@ public class TacheServlet extends HttpServlet {
     }
 
     private void listTaches(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Utilisateur loggedInUser = (Utilisateur) request.getSession().getAttribute("utilisateur");
         try {
-            List<Tache> taches = tacheService.getAllTaches();
+            List<Tache> taches = tacheService.getTachesForUser(loggedInUser);
 
 
 
             // Set attributes for JSP
             request.setAttribute("taches", taches);
+
+            // Fetch all users for assignment (this line is important for the modal)
+            List<Utilisateur> utilisateurs = utilisateurService.getNormalUtilisateurs();
+            request.setAttribute("utilisateurs", utilisateurs);
 
 
             // Forward to the JSP
@@ -163,13 +179,35 @@ public class TacheServlet extends HttpServlet {
                 .filter(Objects::nonNull) // Filter out any null tags
                 .collect(Collectors.toSet());
 
+        // Create a task with utilisateur_id = null (unassigned) if manager
+        Utilisateur assignedUser = loggedInUser.isManager() ? null : loggedInUser;
+
         // Create and save the task
-        Tache newTache = new Tache(titre, description, LocalDate.now(), parsedDateLimite, false, loggedInUser, selectedTags);
-        tacheService.createTache(newTache); // Assuming this method exists to handle task creation
+        Tache newTache = new Tache(titre, description, LocalDate.now(), parsedDateLimite, false, assignedUser, selectedTags);
+        tacheService.createTache(newTache);
 
         // Redirect to the task list page after creation
         response.sendRedirect("tache?action=list");
     }
+
+    private void assignTache(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Long tacheId = Long.parseLong(request.getParameter("tacheId"));
+        Long assignedUserId = Long.parseLong(request.getParameter("assignedUserId"));
+
+        try {
+            // Call the service method to assign the task
+            tacheService.assignTacheToUser(tacheId, assignedUserId);
+
+            // Redirect back to the task list after assignment
+            response.sendRedirect("tache?action=list");
+        } catch (IllegalArgumentException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        }
+    }
+
+
+
+
 
 
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

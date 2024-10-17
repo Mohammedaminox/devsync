@@ -24,6 +24,9 @@ public class UtilisateurService {
     public List<Utilisateur> getAllUtilisateurs() {
         return em.createQuery("SELECT u FROM Utilisateur u", Utilisateur.class).getResultList();
     }
+    public List<Utilisateur> getNormalUtilisateurs() {
+        return em.createQuery("SELECT u FROM Utilisateur u where u.isManager = false ", Utilisateur.class).getResultList();
+    }
 
     public Utilisateur updateUtilisateur(Utilisateur utilisateur) {
         return em.merge(utilisateur);

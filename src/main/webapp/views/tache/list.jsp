@@ -1,5 +1,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.devsync.entities.Tache" %>
+<%@ page import="com.devsync.entities.Utilisateur" %>
+<%@ page import="com.devsync.services.UtilisateurService" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <!DOCTYPE html>
@@ -23,6 +25,10 @@
     %>
 
     <a href="tache?action=create" class="btn btn-success m-4">Create New tache</a>
+    <%
+        Utilisateur loggedInUser = (Utilisateur) session.getAttribute("utilisateur");
+
+    %>
     <table class="table table-bordered table-striped">
         <thead>
         <tr>
@@ -30,7 +36,6 @@
             <th>Titre</th>
             <th>DateCreation</th>
             <th>DateLimite</th>
-            <th>IsTermine</th>
             <th>Actions</th>
         </tr>
         </thead>
@@ -51,7 +56,6 @@
             <td><%= tache.getTitre() %></td>
             <td><%= tache.getDateCreation() %></td>
             <td><%= tache.getDateLimite() %></td>
-            <td><%= tache.isTerminee() %></td>
             <td>
                 <a href="?action=details&id=<%= tache.getId() %>" class="btn btn-info btn-sm">Details</a>
                 <a href="?action=update&id=<%= tache.getId() %>" class="btn btn-warning btn-sm">Update</a>
@@ -63,6 +67,12 @@
                 <% } else { %>
                 <span class="badge bg-success">Completed</span>
                 <% } %>
+
+
+                <% if (loggedInUser.isManager() && tache.getUtilisateur() == null) { %>
+                <!-- Button to assign the task to a user -->
+                <button class="btn btn-primary btn-sm" onclick="showAssignModal(<%= tache.getId() %>)">Assign User</button>
+                <% } %>
             </td>
 
         </tr>
@@ -72,6 +82,36 @@
         %>
         </tbody>
     </table>
+
+    <!-- Task assignment modal (hidden by default) -->
+    <div id="assignModal" style="display:none;">
+        <form action="tache?action=assign" method="POST">
+            <input type="hidden" id="tacheId" name="tacheId">
+            <label for="assignedUserId">Assign to User:</label>
+            <select name="assignedUserId" id="assignedUserId">
+                <% List<Utilisateur> utilisateurs = (List<Utilisateur>) request.getAttribute("utilisateurs");
+                    for (Utilisateur user : utilisateurs) { %>
+                <option value="<%= user.getId() %>"><%= user.getNom() %></option>
+                <% } %>
+            </select>
+
+
+            <button type="submit" class="btn btn-success">Assign</button>
+            <button type="button" class="btn btn-secondary" onclick="closeAssignModal()">Cancel</button>
+        </form>
+    </div>
+
+    <script>
+        function showAssignModal(tacheId) {
+            document.getElementById("tacheId").value = tacheId;
+            document.getElementById("assignModal").style.display = "block";
+        }
+
+        function closeAssignModal() {
+            document.getElementById("assignModal").style.display = "none";
+        }
+    </script>
+
 
 
 </div>

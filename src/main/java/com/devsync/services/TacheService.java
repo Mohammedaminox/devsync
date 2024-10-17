@@ -3,6 +3,7 @@ package com.devsync.services;
 import com.devsync.entities.Tache;
 import com.devsync.entities.Utilisateur;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.NoResultException;
@@ -15,6 +16,9 @@ public class TacheService {
 
     @PersistenceContext
     private EntityManager em;
+
+    @Inject
+    private UtilisateurService utilisateurService;
 
     // Créer une nouvelle tâche
     public Tache createTache(Tache tache) {
@@ -31,19 +35,40 @@ public class TacheService {
         return tache;
     }
 
-    // Récupérer toutes les tâches
-    public List<Tache> getAllTaches() {
-        return em.createQuery("SELECT t FROM Tache t", Tache.class).getResultList();
+
+
+
+    public List<Tache> getTachesForUser(Utilisateur user) {
+        if (user.isManager()) {
+            // If the user is a manager, return all tasks
+            return em.createQuery("SELECT t FROM Tache t", Tache.class).getResultList();
+        } else {
+            // Otherwise, return only the tasks created by the user
+            return em.createQuery("SELECT t FROM Tache t WHERE t.utilisateur.id = :userId", Tache.class)
+                    .setParameter("userId", user.getId())
+                    .getResultList();
+        }
+    }
+
+    public void assignTacheToUser(Long tacheId, Long userId) {
+        // Retrieve the task and user
+        Tache tache = getTacheById(tacheId);
+        Utilisateur utilisateur = utilisateurService.getUtilisateurById(userId);
+
+        // Check if both exist
+        if (tache != null && utilisateur != null) {
+            // Assign the user to the task
+            tache.setUtilisateur(utilisateur);
+
+            // Persist the updated task
+            em.merge(tache);
+        } else {
+            throw new IllegalArgumentException("Task or User not found.");
+        }
     }
 
 
-    // Récupérer toutes les tâches d'un utilisateur
-    public List<Tache> getTachesByUtilisateur(Utilisateur utilisateur) {
-        return em.createQuery(
-                        "SELECT t FROM Tache t WHERE t.utilisateur = :utilisateur", Tache.class)
-                .setParameter("utilisateur", utilisateur)
-                .getResultList();
-    }
+
 
     // Mettre à jour une tâche
     public Tache updateTache(Tache tache) {

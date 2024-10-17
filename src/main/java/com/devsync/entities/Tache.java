@@ -33,7 +33,7 @@ public class Tache {
 
     // Relation Many-to-One avec Utilisateur
     @ManyToOne
-    @JoinColumn(name = "utilisateur_id", nullable = false)
+    @JoinColumn(name = "utilisateur_id")
     private Utilisateur utilisateur;
 
     // Relation Many-to-Many avec Tag

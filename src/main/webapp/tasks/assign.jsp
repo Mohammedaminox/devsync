@@ -17,10 +17,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <a href="<%= request.getContextPath() %>" class="d-flex align-items-center mb-4 text-dark">
-                    <img class="mr-2" src="https://raw.githubusercontent.com/abdelghani1002/Taskify-Frontend/refs/heads/main/src/assets/logo.png" alt="logo" style="width: 32px; height: 32px;">
-                    DevSync
-                </a>
+
                 <div class="card">
                     <div class="card-body">
                         <form action="<%= request.getContextPath() %>/requests?action=acceptModify" method="post">
